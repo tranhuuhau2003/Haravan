@@ -1,0 +1,8 @@
+vendor (nhà cung cấp) table: id, tên, địa chỉ, sdt,...
+product type(loại) id, tên, 
+image (ảnh) id, url, mô tả 
+tags
+bảng đệm: để khóa ngoại nhiều sản phẩm 
+tất cả các bang phải có ngày tạo, ngày update, người tạo, người update 
+
+toiws nhie

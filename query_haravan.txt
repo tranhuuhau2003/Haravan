@@ -1,0 +1,290 @@
+USE haravan;
+
+-- Table: Employee
+CREATE TABLE Employee (
+    Employee_ID INT AUTO_INCREMENT PRIMARY KEY,  -- ID nhân viên
+    Name VARCHAR(255) NOT NULL,  -- Tên nhân viên
+    Email VARCHAR(255) NOT NULL UNIQUE,  -- Email nhân viên (đảm bảo duy nhất)
+    Phone VARCHAR(20),  -- Số điện thoại nhân viên
+    Position VARCHAR(100),  -- Vị trí công việc của nhân viên
+    Created_At DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian tạo nhân viên
+    Updated_At DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP  -- Thời gian cập nhật nhân viên
+);
+
+
+-- Table: Vendor
+CREATE TABLE Vendor (
+    Vendor_ID INT(11) AUTO_INCREMENT PRIMARY KEY,  -- ID nhà cung cấp
+    Name TEXT NOT NULL UNIQUE,  -- Tên nhà cung cấp (đảm bảo duy nhất)
+    Address TEXT,  -- Địa chỉ nhà cung cấp
+    Phone TEXT,  -- Số điện thoại nhà cung cấp
+    Email TEXT,  -- Email nhà cung cấp
+    Website TEXT,  -- Website nhà cung cấp
+    Created_At DATETIME,  -- Thời gian tạo nhà cung cấp
+    Updated_At DATETIME,  -- Thời gian cập nhật nhà cung cấp
+    Created_By INT(11),  -- Nhân viên tạo nhà cung cấp (liên kết với Employee)
+    Updated_By INT(11),  -- Nhân viên cập nhật nhà cung cấp (liên kết với Employee)
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với Employee (người tạo)
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với Employee (người cập nhật)
+);
+
+
+-- Table: Product_Type
+CREATE TABLE Product_Type (
+    Type_ID INT AUTO_INCREMENT PRIMARY KEY,  -- ID loại sản phẩm (khóa chính tự động tăng)
+    Type_Name VARCHAR(255) NOT NULL UNIQUE,  -- Tên loại sản phẩm (đảm bảo duy nhất)
+    Description TEXT,  -- Mô tả loại sản phẩm
+    Created_At DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian tạo loại sản phẩm
+    Updated_At DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- Thời gian cập nhật loại sản phẩm
+    Created_By INT(11),  -- Nhân viên tạo loại sản phẩm (liên kết với bảng Employee)
+    Updated_By INT(11),  -- Nhân viên cập nhật loại sản phẩm (liên kết với bảng Employee)
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với bảng Employee
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với bảng Employee
+);
+
+
+
+-- Table: Industry (Ngành hàng)
+CREATE TABLE Industry (
+    Industry_ID INT AUTO_INCREMENT PRIMARY KEY,  -- ID ngành hàng (khóa chính tự động tăng)
+    Industry_Name VARCHAR(255) NOT NULL UNIQUE,  -- Tên ngành hàng (đảm bảo duy nhất)
+    Description TEXT,  -- Mô tả ngành hàng
+    Status ENUM('active', 'inactive') DEFAULT 'active',  -- Trạng thái ngành hàng (active hoặc inactive)
+    Parent_Industry_ID INT NULL,  -- ID ngành hàng cha (nếu có, dùng để tạo cấu trúc phân cấp ngành hàng)
+    Created_At DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian tạo ngành hàng
+    Updated_At DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- Thời gian cập nhật ngành hàng
+    Created_By INT(11),  -- Nhân viên tạo ngành hàng (liên kết với Employee)
+    Updated_By INT(11),  -- Nhân viên cập nhật ngành hàng (liên kết với Employee)
+    FOREIGN KEY (Parent_Industry_ID) REFERENCES Industry(Industry_ID) ON DELETE SET NULL,  -- Quan hệ ngành cha (ngành hàng có thể có ngành cha, nếu xóa ngành cha thì set NULL)
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với bảng Employee
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với bảng Employee
+);
+
+
+-- Table: Product_Attributes
+CREATE TABLE Product_Attributes (
+    Attribute_ID INT AUTO_INCREMENT PRIMARY KEY,  -- ID thuộc tính (khóa chính tự động tăng)
+    Attribute_Name VARCHAR(255) NOT NULL UNIQUE,  -- Tên thuộc tính (đảm bảo duy nhất)
+    Description TEXT,  -- Mô tả thuộc tính
+    Created_At DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian tạo thuộc tính
+    Updated_At DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- Thời gian cập nhật thuộc tính
+    Created_By INT(11),  -- Nhân viên tạo thuộc tính
+    Updated_By INT(11),  -- Nhân viên cập nhật thuộc tính
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với bảng Employee
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với bảng Employee
+);
+
+
+-- Table: Product_Attribute_Values
+CREATE TABLE Product_Attribute_Values (
+    Value_ID INT AUTO_INCREMENT PRIMARY KEY,  -- ID giá trị thuộc tính (khóa chính tự động tăng)
+    Attribute_ID INT NOT NULL,  -- ID thuộc tính (liên kết với bảng Product_Attributes)
+    Value_Name VARCHAR(255) NOT NULL,  -- Giá trị thuộc tính (ví dụ: đỏ, xanh, vàng)
+    Created_At DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian tạo giá trị thuộc tính
+    Updated_At DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- Thời gian cập nhật giá trị thuộc tính
+    Created_By INT(11),  -- Nhân viên tạo giá trị thuộc tính
+    Updated_By INT(11),  -- Nhân viên cập nhật giá trị thuộc tính
+    UNIQUE (Attribute_ID, Value_Name),  -- Đảm bảo mỗi giá trị thuộc tính là duy nhất
+    FOREIGN KEY (Attribute_ID) REFERENCES Product_Attributes(Attribute_ID) ON DELETE CASCADE,  -- Liên kết với bảng Product_Attributes
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với bảng Employee
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với bảng Employee
+);
+
+
+-- Table: Products
+CREATE TABLE Products (
+    Product_ID INT(11) AUTO_INCREMENT PRIMARY KEY,  -- ID sản phẩm (khóa chính tự động tăng)
+    Title TEXT,  -- Tiêu đề của sản phẩm (ví dụ: tên sản phẩm)
+    Handle TEXT,  -- Chuỗi nhận diện duy nhất cho sản phẩm (thường sử dụng trong URL)
+    Vendor_ID INT(11),  -- ID nhà cung cấp (liên kết với bảng Vendor)
+    Type_ID INT(11),  -- ID loại sản phẩm (liên kết với bảng Product_Type)
+    Industry_ID INT(11),  -- ID ngành nghề liên quan đến sản phẩm (liên kết với bảng Industry)
+    Description TEXT,  -- Mô tả chi tiết về sản phẩm
+    Quote TEXT,  -- Báo giá sản phẩm
+    Price DECIMAL(10,2),  -- Giá sản phẩm
+    Compare_At_Price DECIMAL(10,2),  -- Giá so sánh (dùng cho sản phẩm giảm giá)
+    Cost_Price DECIMAL(10,2),  -- Giá vốn sản phẩm
+    SKU TEXT,  -- Mã sản phẩm (Stock Keeping Unit)
+    Barcode TEXT,  -- Mã vạch của sản phẩm
+    Is_Inventory_Managed BOOLEAN,  -- Kiểm tra sản phẩm có được quản lý tồn kho không
+    Is_Lot_Managed BOOLEAN,  -- Kiểm tra sản phẩm có được quản lý theo lô không
+    Allow_Backorder BOOLEAN,  -- Cho phép đặt hàng khi hết hàng (backorder)
+    Allow_Shipping BOOLEAN,  -- Cho phép vận chuyển sản phẩm không
+    Weight DECIMAL(10,2),  -- Trọng lượng sản phẩm
+    Has_Multiple_Units BOOLEAN,  -- Sản phẩm có nhiều đơn vị hay không
+    Has_Variants BOOLEAN,  -- Sản phẩm có các biến thể khác nhau (size, màu sắc) hay không
+    Is_Promoted BOOLEAN,  -- Kiểm tra sản phẩm có được khuyến mãi hay không
+    Meta_Title TEXT,  -- Tiêu đề meta cho SEO
+    Meta_Description TEXT,  -- Mô tả meta cho SEO
+    Created_At DATETIME,  -- Thời gian tạo sản phẩm
+    Updated_At DATETIME,  -- Thời gian cập nhật sản phẩm
+    Created_By INT(11),  -- Nhân viên tạo sản phẩm (liên kết với bảng Employee)
+    Updated_By INT(11),  -- Nhân viên cập nhật sản phẩm (liên kết với bảng Employee)
+    FOREIGN KEY (Vendor_ID) REFERENCES Vendor(Vendor_ID),  -- Liên kết với bảng Vendor
+    FOREIGN KEY (Type_ID) REFERENCES Product_Type(Type_ID),  -- Liên kết với bảng Product_Type
+    FOREIGN KEY (Industry_ID) REFERENCES Industry(Industry_ID),  -- Liên kết với bảng Industry
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với bảng Employee (người tạo)
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với bảng Employee (người cập nhật)
+);
+
+
+-- Table: Images
+CREATE TABLE Images (
+    Image_ID INT(11) AUTO_INCREMENT PRIMARY KEY,  -- ID ảnh (khóa chính tự động tăng)
+    Product_ID INT(11),  -- ID sản phẩm (liên kết với bảng Products)
+    URL TEXT NOT NULL UNIQUE,  -- URL của ảnh (đảm bảo duy nhất)
+    Description TEXT,  -- Mô tả ảnh
+    Created_At DATETIME,  -- Thời gian tạo ảnh
+    Updated_At DATETIME,  -- Thời gian cập nhật ảnh
+    Created_By INT(11),  -- Nhân viên tạo ảnh
+    Updated_By INT(11),  -- Nhân viên cập nhật ảnh
+    FOREIGN KEY (Product_ID) REFERENCES Products(Product_ID),  -- Liên kết với bảng Products
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với bảng Employee
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với bảng Employee
+);
+
+
+
+-- Table: Product_Image (Bảng tạm liên kết sản phẩm và ảnh)
+CREATE TABLE Product_Image (
+    Product_Image_ID INT(11) AUTO_INCREMENT PRIMARY KEY,  -- ID liên kết sản phẩm và ảnh (khóa chính tự động tăng)
+    Product_ID INT(11),  -- ID sản phẩm (liên kết với bảng Products)
+    Image_ID INT(11),  -- ID ảnh (liên kết với bảng Images)
+    Created_At DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian tạo liên kết
+    Updated_At DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- Thời gian cập nhật liên kết
+    Created_By INT(11),  -- Nhân viên tạo liên kết
+    Updated_By INT(11),  -- Nhân viên cập nhật liên kết
+    FOREIGN KEY (Product_ID) REFERENCES Products(Product_ID),  -- Liên kết với bảng Products
+    FOREIGN KEY (Image_ID) REFERENCES Images(Image_ID),  -- Liên kết với bảng Images
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với bảng Employee
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với bảng Employee
+);
+
+
+-- Table: Product_Attribute_Assignments
+CREATE TABLE Product_Attribute_Assignments (
+    Assignment_ID INT AUTO_INCREMENT PRIMARY KEY,  -- ID liên kết (khóa chính tự động tăng)
+    Product_ID INT NOT NULL,  -- ID sản phẩm (liên kết với bảng Products)
+    Value_ID INT NOT NULL,  -- ID giá trị thuộc tính (liên kết với bảng Product_Attribute_Values)
+    Created_At DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian tạo liên kết
+    Updated_At DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- Thời gian cập nhật liên kết
+    Created_By INT(11),  -- Nhân viên tạo liên kết
+    Updated_By INT(11),  -- Nhân viên cập nhật liên kết
+    UNIQUE (Product_ID, Value_ID),  -- Đảm bảo mỗi sản phẩm chỉ có một giá trị thuộc tính duy nhất
+    FOREIGN KEY (Product_ID) REFERENCES Products(Product_ID) ON DELETE CASCADE,  -- Liên kết với bảng Products
+    FOREIGN KEY (Value_ID) REFERENCES Product_Attribute_Values(Value_ID) ON DELETE CASCADE,  -- Liên kết với bảng Product_Attribute_Values
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với bảng Employee
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với bảng Employee
+);
+
+
+-- Table: Tag_Product
+CREATE TABLE Tag_Product (
+    ID INT(11) AUTO_INCREMENT PRIMARY KEY,  -- ID thẻ sản phẩm
+    Name TEXT,  -- Tên thẻ sản phẩm (ví dụ: "Khuyến mãi", "Hot", v.v.)
+    Created_At DATETIME,  -- Thời gian tạo thẻ
+    Updated_At DATETIME  -- Thời gian cập nhật thẻ
+);
+
+
+-- Table: Product_Group
+CREATE TABLE Product_Group (
+    group_id INT(11) AUTO_INCREMENT PRIMARY KEY,  -- ID nhóm sản phẩm
+    group_name TEXT,  -- Tên nhóm sản phẩm
+    description TEXT,  -- Mô tả nhóm sản phẩm
+    Image_ID INT(11),  -- ID hình ảnh đại diện cho nhóm sản phẩm
+    Meta_Title TEXT,  -- Tiêu đề meta SEO cho nhóm sản phẩm
+    Meta_Description TEXT,  -- Mô tả meta SEO cho nhóm sản phẩm
+    Created_At DATETIME,  -- Thời gian tạo nhóm sản phẩm
+    Updated_At DATETIME,  -- Thời gian cập nhật nhóm sản phẩm
+    Created_By INT(11),  -- Nhân viên tạo nhóm sản phẩm (liên kết với Employee)
+    Updated_By INT(11),  -- Nhân viên cập nhật nhóm sản phẩm (liên kết với Employee)
+    FOREIGN KEY (Image_ID) REFERENCES Images(Image_ID),  -- Liên kết với bảng Images (hình ảnh nhóm sản phẩm)
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với Employee (người tạo)
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID)  -- Liên kết với Employee (người cập nhật)
+);
+
+-- Table: Product_Group_Conditions
+CREATE TABLE Product_Group_Conditions (
+    ConditionID INT AUTO_INCREMENT PRIMARY KEY,  -- ID điều kiện nhóm sản phẩm
+    Product_Group_ID INT NOT NULL,  -- ID nhóm sản phẩm (liên kết với bảng Product_Group)
+    Source_Type ENUM('manual', 'auto') DEFAULT 'manual',  -- Kiểu nguồn (tự động hay thủ công)
+    Product_Attribute ENUM('Tên sản phẩm', 'Loại sản phẩm', 'Nhà cung cấp', 'Ngành hàng', 'Trọng lượng'),  -- Thuộc tính của sản phẩm để áp dụng điều kiện
+    Comparison TEXT,  -- So sánh (ví dụ: "lớn hơn", "bằng", v.v.)
+    Match_Type ENUM('all', 'any') DEFAULT 'any',  -- Kiểu so khớp (tất cả hoặc bất kỳ)
+    FOREIGN KEY (Product_Group_ID) REFERENCES Product_Group(group_id)  -- Liên kết với bảng Product_Group
+);
+
+
+-- Table: Price_List
+CREATE TABLE Price_List (
+    Id INT AUTO_INCREMENT PRIMARY KEY,  -- ID danh sách giá
+    Price_List_Name VARCHAR(255) NOT NULL,  -- Tên danh sách giá
+    Description TEXT,  -- Mô tả danh sách giá
+    Start_Time DATETIME NOT NULL,  -- Thời gian bắt đầu danh sách giá
+    End_Time DATETIME NOT NULL,  -- Thời gian kết thúc danh sách giá
+    Status VARCHAR(50) NOT NULL DEFAULT 'Active',  -- Trạng thái danh sách giá (Active hoặc Inactive)
+    Created_At DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian tạo danh sách giá
+    Created_By INT(11),  -- Nhân viên tạo danh sách giá (liên kết với Employee)
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID)  -- Liên kết với Employee (người tạo)
+);
+
+
+CREATE TABLE Price_List_Products (
+    Price_List_Id INT NOT NULL,  -- ID của danh sách giá
+    Product_ID INT NOT NULL,  -- ID sản phẩm từ bảng Products
+    PRIMARY KEY (Price_List_Id, Product_ID),  -- Khóa chính tổ hợp
+    FOREIGN KEY (Price_List_Id) REFERENCES Price_List(Id) ON DELETE CASCADE,  -- Liên kết với bảng Price_List
+    FOREIGN KEY (Product_ID) REFERENCES Products(Product_ID) ON DELETE CASCADE  -- Liên kết với bảng Products
+);
+
+
+-- Table: Price_List_History
+CREATE TABLE Price_List_History (
+    Id INT AUTO_INCREMENT PRIMARY KEY,  -- ID lịch sử thay đổi danh sách giá
+    Price_List_Id INT NOT NULL,  -- ID của danh sách giá
+    Change_Details TEXT NOT NULL,  -- Chi tiết thay đổi (ví dụ: thay đổi giá sản phẩm)
+    Performed_By INT NOT NULL,  -- Người thực hiện thay đổi
+    Performed_At DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian thực hiện thay đổi
+    FOREIGN KEY (Price_List_Id) REFERENCES Price_List(Id),  -- Liên kết với bảng Price_List
+    FOREIGN KEY (Performed_By) REFERENCES Employee(Employee_ID)  -- Liên kết với bảng Employee (người thực hiện thay đổi)
+);
+
+-- Table: Price_List_Conditions
+CREATE TABLE Price_List_Conditions (
+    Condition_Id INT AUTO_INCREMENT PRIMARY KEY,  -- ID điều kiện của danh sách giá
+    Price_List_Id INT NOT NULL,  -- ID của danh sách giá
+    Channel ENUM('POS', 'Harasocial', 'All') DEFAULT 'All',  -- Kênh áp dụng (POS, Harasocial, hoặc tất cả)
+    Applicable_to ENUM('All_customers', 'customer_groups', 'specific_customers') DEFAULT 'All_customers',  -- Đối tượng áp dụng (tất cả khách hàng, nhóm khách hàng, hoặc khách hàng cụ thể)
+    Employee ENUM('All_employee', 'Employee_id') DEFAULT 'All_employee',  -- Nhân viên áp dụng (tất cả nhân viên hoặc nhân viên cụ thể)
+    FOREIGN KEY (Price_List_Id) REFERENCES Price_List(Id)  -- Liên kết với bảng Price_List
+);
+
+
+-- Table: Branch
+CREATE TABLE Branch (
+    ID INT AUTO_INCREMENT PRIMARY KEY,  -- ID chi nhánh
+    Name TEXT NOT NULL UNIQUE,  -- Tên chi nhánh (đảm bảo duy nhất)
+    Address TEXT,  -- Địa chỉ chi nhánh
+    Phone TEXT UNIQUE,  -- Số điện thoại chi nhánh (đảm bảo duy nhất)
+    Email TEXT UNIQUE,  -- Email chi nhánh (đảm bảo duy nhất)
+    Manager_ID INT,  -- ID nhân viên quản lý chi nhánh
+    Created_At DATETIME,  -- Thời gian tạo chi nhánh
+    Updated_At DATETIME,  -- Thời gian cập nhật chi nhánh
+    Created_By INT(11),  -- Nhân viên tạo chi nhánh (liên kết với Employee)
+    Updated_By INT(11),  -- Nhân viên cập nhật chi nhánh (liên kết với Employee)
+    FOREIGN KEY (Created_By) REFERENCES Employee(Employee_ID),  -- Liên kết với Employee (người tạo)
+    FOREIGN KEY (Updated_By) REFERENCES Employee(Employee_ID),  -- Liên kết với Employee (người cập nhật)
+    FOREIGN KEY (Manager_ID) REFERENCES Employee(Employee_ID)  -- Liên kết với Employee (quản lý chi nhánh)
+);
+
+
+CREATE TABLE Price_List_Condition_Branch (
+    Condition_Id INT NOT NULL,  -- Liên kết tới bảng Price_List_Conditions
+    Branch_ID INT NOT NULL,  -- Liên kết tới bảng Branch
+    PRIMARY KEY (Condition_Id, Branch_ID),  -- Khóa chính tổ hợp
+    FOREIGN KEY (Condition_Id) REFERENCES Price_List_Conditions(Condition_Id) ON DELETE CASCADE,  -- Liên kết với bảng Price_List_Conditions
+    FOREIGN KEY (Branch_ID) REFERENCES Branch(ID) ON DELETE CASCADE  -- Liên kết với bảng Branch
+);
+
+
